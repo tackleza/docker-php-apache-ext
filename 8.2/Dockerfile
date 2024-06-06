@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     nano \
     iputils-ping \
+    git \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-xpm \
     && docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
     && docker-php-ext-install -j$(nproc) \
@@ -56,5 +57,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Clean up
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# chmod www to www-data
+RUN chown -R www-data:www-data /var/www
 
 EXPOSE 80
