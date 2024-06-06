@@ -18,6 +18,8 @@ RUN apt-get update && apt-get install -y \
     libc-client-dev \
     libssl-dev \
     unzip \
+    nano \
+    iputils-ping \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-xpm \
     && docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
     && docker-php-ext-install -j$(nproc) \
