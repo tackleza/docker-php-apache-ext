@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     libmagickwand-dev \
     libc-client-dev \
     libssl-dev \
+    libgmp-dev \
     unzip \
     nano \
     iputils-ping \
@@ -46,6 +47,7 @@ RUN apt-get update && apt-get install -y \
     tidy \
     xsl \
     zip \
+    gmp \
     && pecl install mongodb imagick \
     && docker-php-ext-enable mongodb imagick
 
