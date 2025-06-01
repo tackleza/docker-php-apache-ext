@@ -19,10 +19,6 @@ jobs:
 
       - name: Build & Push PHP Docker Images
         run: |
-          for dir in */; do
-            if [[ -f "$dir/build.sh" && -f "$dir/push.sh" ]]; then
-              echo "Building PHP in $dir"
-              chmod +x "$dir/build.sh" "$dir/push.sh"
-              (cd "$dir" && ./build.sh && ./push.sh)
-            fi
-          done
+          echo "Building PHP; execute script buildall.sh"
+          ./buildall.sh
+          echo "Finished. End of script buildall.sh"
