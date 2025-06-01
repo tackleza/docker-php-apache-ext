@@ -1,5 +1,7 @@
 # PHP Apache Docker
 ## Same as the official PHP repository, but installed an additional extension.
+Docker hub: https://hub.docker.com/r/tackleza/php-apache-ext
+
 This docker can run as standalone php web server
 
 ## How to get Started: here are some Examples
