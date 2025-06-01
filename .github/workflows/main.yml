@@ -4,14 +4,63 @@ on:
   push:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'  # Run daily at midnight UTC
+    - cron: '0 0 */10 * *'  # Run every 10 days at midnight UTC
 
 jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    outputs:
+      build_needed: ${{ steps.check.outputs.build_needed }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache previous digest
+        id: cache-digest
+        uses: actions/cache@v4
+        with:
+          path: .digest
+          key: php-base-digest-${{ runner.os }}
+          restore-keys: |
+            php-base-digest-
+
+      - name: Pull latest PHP image and get digest
+        id: check
+        run: |
+          LATEST_IMAGE=php:latest
+
+          echo "Checking latest digest from: $LATEST_IMAGE"
+          DIGEST=$(docker pull "$LATEST_IMAGE" | grep Digest | awk '{print $2}')
+
+          echo "Latest digest: $DIGEST"
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+
+          if [ -f .digest ]; then
+            echo "Found cached .digest file. Comparing with latest..."
+            if grep -q "$DIGEST" .digest; then
+              echo "[INFO] Base image unchanged. Skipping Docker build."
+              echo "build_needed=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "[INFO] Base image updated. Proceeding with Docker build."
+              echo "build_needed=true" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "[INFO] No digest cache found. Forcing build."
+            echo "build_needed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save new digest to file
+        if: steps.check.outputs.build_needed == 'true'
+        run: echo "${{ steps.check.outputs.digest }}" > .digest
+
   build-docker-images:
+    needs: check-and-build
+    if: needs.check-and-build.outputs.build_needed == 'true'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Docker login
@@ -19,6 +68,16 @@ jobs:
 
       - name: Build & Push PHP Docker Images
         run: |
-          echo "Building PHP; execute script buildall.sh"
+          echo "[INFO] Starting Docker image build. Base image was updated."
           sh buildall.sh
-          echo "Finished. End of script buildall.sh"
+          echo "[INFO] Docker build and push completed."
+
+  skip-build-log:
+    needs: check-and-build
+    if: needs.check-and-build.outputs.build_needed != 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log skipping
+        run: |
+          echo "[INFO] Skipping Docker build: no upstream changes detected in php:latest base image."
