@@ -1,7 +1,7 @@
 FROM php:8.4-apache
 
 # 1. Install system dependencies for PHP extensions
-# Replaced libc-client-dev with uw-mailutils
+# CORRECTED: The package for IMAP dev libraries is now libpanda-client-dev
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       libfreetype-dev \
@@ -17,7 +17,7 @@ RUN apt-get update \
       libxslt1-dev \
       zlib1g-dev \
       libmagickwand-dev \
-      uw-mailutils \
+      libpanda-client-dev \
       libssl-dev \
       libgmp-dev \
       unzip \
