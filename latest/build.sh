@@ -1,0 +1,3 @@
+#!/bin/bash
+docker pull php:8.4-apache
+docker build -t tackleza/php-apache-ext:latest .
