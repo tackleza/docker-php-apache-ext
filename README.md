@@ -1,90 +1,133 @@
-# PHP Apache Docker
-## Same as the official PHP repository, but installed an additional extension.
-Docker hub: https://hub.docker.com/r/tackleza/php-apache-ext
+# php-apache-ext
 
-This docker can run as standalone php web server
+Docker Hub: https://hub.docker.com/r/tackleza/php-apache-ext
 
-## How to get Started: here are some Examples
+A production-ready PHP + Apache image with a curated set of common PHP extensions pre-installed. Drop-in ready for most PHP applications.
 
-This example shows how to mount your website, logs, and configuration to the host
-This is mapped to port 8080 on host `http://localhost:8080`
+## Available Tags
 
-    docker run -d \
-      --name apache \
-      -p 8080:80 \
-      -v $(pwd)/apache.conf:/etc/apache2/sites-available/000-default.conf \
-      -v $(pwd)/custom-php.ini:/usr/local/etc/php/conf.d/custom-php.ini \
-      -v $(pwd)/websites:/var/www \
-      -v $(pwd)/logs:/var/log/apache2 \
-      tackleza/php-apache-ext:8.2
+| Tag | PHP Version | Status |
+|-----|------------|--------|
+| `8.1` | PHP 8.1 | ⚠️ End-of-Life — security fixes only |
+| `8.2` | PHP 8.2 | ✅ Supported |
+| `8.3` | PHP 8.3 | ✅ Supported |
+| `8.4` | PHP 8.4 | ✅ Supported |
+| `8.5` | PHP 8.5 | ✅ Supported |
+| `latest` | PHP 8.5 | ✅ Latest |
 
-Make sure that you have dir "logs/example.com" exists in host. otherwise docker will failed to start up
-For more future problem you can debug your docker container by view docker logs by
+> PHP 8.6 / 9.0 are not yet available.
 
-    docker logs apache
+## Installed Extensions
 
-## Example of apache.conf
+| Extension | Description |
+|-----------|-------------|
+| `bcmath` | Arbitrary precision mathematics |
+| `bz2` | Bzip2 compressed file support |
+| `calendar` | Calendar conversion |
+| `exif` | EXIF metadata in images |
+| `gd` | Image creation and manipulation |
+| `gettext` | Native language support (GNU gettext) |
+| `gmp` | GNU Multiple Precision arithmetic |
+| `imagick` | ImageMagick integration |
+| `imap` | IMAP email protocol support |
+| `intl` | Internationalization (ICU) |
+| `mongod` | MongoDB driver |
+| `mysqli` | MySQL Improved extension |
+| `opcache` | PHP bytecode cache |
+| `pcntl` | Process control |
+| `pdo_mysql` | PDO MySQL driver |
+| `shmop` | Shared memory operations |
+| `soap` | SOAP protocol support |
+| `sockets` | Low-level socket interface |
+| `sysvmsg` | System V message queues |
+| `sysvsem` | System V semaphores |
+| `sysvshm` | System V shared memory |
+| `tidy` | HTML/XML cleaner and repairer |
+| `xsl` | XSLT transformations |
+| `zip` | ZIP archive support |
 
-    <VirtualHost *:80>
-        ServerName example.com
-        DocumentRoot /var/www/example.com
+## Installed System Tools
 
-        <Directory /var/www/example.com>
-            Options Indexes FollowSymLinks
-            AllowOverride All
-            Require all granted
-        </Directory>
+- **Composer** — PHP dependency manager
+- **curl**, **git**, **nano**, **ping** — common CLI utilities
 
-        ErrorLog /var/log/apache2/example.com/error.log
-        CustomLog /var/log/apache2/example.com/access.log combined
-    </VirtualHost>
+## Usage
 
-## Example of custom-php.ini
-    memory_limit = 512M
-    upload_max_filesize = 512M
-    post_max_size = 512M
+### Basic usage
 
-    extension=gmp
+```bash
+docker run -d \
+  --name my-site \
+  -p 8080:80 \
+  -v $(pwd)/websites:/var/www \
+  tackleza/php-apache-ext:8.3
+```
 
-## List of installed extentions
-- **PDO**: PHP Data Objects, a database access layer providing a uniform method of access to multiple databases.
-- **PDO** MySQL: PDO driver for MySQL.
-- **GD**: Library for creating and manipulating images.
-- **OPcache**: Bytecode cache for PHP, which improves performance.
-- **Intl**: Internationalization extension for PHP.
-- **bz2**: Extension for reading and writing bzip2-compressed files.
-- **SOAP**: Simple Object Access Protocol extension.
-- **XSL**: XML Stylesheet Language Transformation extension.
-- **ZIP**: ZIP file management extension.
-- **Calendar**: Calendar conversion support.
-- **EXIF**: Exchangeable image file format support.
-- **BCMath**: Arbitrary precision mathematics.
-- **Sockets**: Low-level interface to the socket communication functions.
-- **gettext**: Native language support through the GNU gettext.
-- **shmop**: Shared memory operations.
-- **sysvmsg**: System V message queue support.
-- **sysvsem**: System V semaphore support.
-- **sysvshm**: System V shared memory support.
-- **Tidy**: Clean and repair HTML and XML documents.
-- **mysqli**: MySQL Improved Extension.
-- **PCNTL**: Process Control support.
-- **IMAP**: Internet Message Access Protocol extension.
-- **MongoDB (>=7.4)**: MongoDB driver for PHP.
-- **Imagick**: ImageMagick extension for creating and modifying images.
-- **GMP (>=7.0)**: library supported in PHP that allows you to do mathematical operations on signed integers
+### With custom PHP settings and Apache config
 
-## List of installed system utils
-- **curl**: CURL is used in command lines or scripts to transfer data
-- **ping**: ping command use for test the ability of the source computer to reach
-- **nano**: nano is a small editor for on the terminal
-- **git**: Git is a DevOps tool used for source code management
-- **Composer**: A Dependency Manager for PHP.
+```bash
+docker run -d \
+  --name my-site \
+  -p 8080:80 \
+  -v $(pwd)/apache.conf:/etc/apache2/sites-available/000-default.conf \
+  -v $(pwd)/custom-php.ini:/usr/local/etc/php/conf.d/custom-php.ini \
+  -v $(pwd)/websites:/var/www \
+  tackleza/php-apache-ext:8.3
+```
 
-## Custom php.ini
+> Ensure log directories exist on the host before starting the container.
 
-You can mount your custom php settings. Please look at the example above
+### Debug with container logs
 
-      -v $(pwd)/custom-php.ini:/usr/local/etc/php/conf.d/custom-php.ini \
+```bash
+docker logs my-site
+```
 
-## I've fixed permissions for www-data
-When php code is executed, it's run as user `www-data` to simply fix some permission problem. I've changed the owner of "/var/www" to `www-data:www-data` otherwise, this can cause a permission problem, such as when creating or modifying a file. For example, some of your application need to write something to file
+## Apache VirtualHost Example
+
+```apache
+<VirtualHost *:80>
+    ServerName example.com
+    DocumentRoot /var/www/example.com
+
+    <Directory /var/www/example.com>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog /var/log/apache2/example.com/error.log
+    CustomLog /var/log/apache2/example.com/access.log combined
+</VirtualHost>
+```
+
+## Custom PHP Configuration
+
+Mount your own `php.ini` or additional `.ini` files:
+
+```bash
+-v $(pwd)/custom-php.ini:/usr/local/etc/php/conf.d/custom-php.ini
+```
+
+Example `custom-php.ini`:
+
+```ini
+memory_limit = 512M
+upload_max_filesize = 512M
+post_max_size = 512M
+extension=gmp
+```
+
+## File Permissions
+
+The document root `/var/www` is owned by `www-data:www-data`. PHP code runs as the `www-data` user. If your application needs to write files, ensure the mounted volume is writable by uid 33 (`www-data`).
+
+## PHP Version Lifecycle
+
+| Version | Status | EOL Date |
+|---------|--------|----------|
+| PHP 8.1 | ⚠️ EOL | Nov 2025 |
+| PHP 8.2 | ✅ Active | Dec 2026 |
+| PHP 8.3 | ✅ Active | Dec 2027 |
+| PHP 8.4 | ✅ Active | Dec 2028 |
+| PHP 8.5 | ✅ Active | Dec 2029 |
