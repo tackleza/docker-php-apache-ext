@@ -1,8 +1,9 @@
 # php-apache-ext
 
-Docker Hub: https://hub.docker.com/r/tackleza/php-apache-ext
+**GitHub:** https://github.com/tackleza/docker-php-apache-ext
+**Docker Hub:** https://hub.docker.com/r/tackleza/php-apache-ext
 
-A production-ready PHP + Apache image with a curated set of common PHP extensions pre-installed. Drop-in ready for most PHP applications.
+A production-ready PHP + Apache image with a curated set of common PHP extensions pre-installed.
 
 ## Available Tags
 
