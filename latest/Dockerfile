@@ -54,7 +54,9 @@ RUN a2enmod rewrite
 # 5. Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 6. Setup Permissions
-RUN chown -R www-data:www-data /var/www
+# 6. Entrypoint — auto-remaps www-data UID to match mounted volume owner
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 80
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

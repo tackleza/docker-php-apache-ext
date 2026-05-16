@@ -78,8 +78,6 @@ docker run -d \
   tackleza/php-apache-ext:8.3
 ```
 
-> Ensure log directories exist on the host before starting the container.
-
 ### Debug with container logs
 
 ```bash
@@ -123,7 +121,21 @@ extension=gmp
 
 ## File Permissions
 
-The document root `/var/www` is owned by `www-data:www-data`. PHP code runs as the `www-data` user. If your application needs to write files, ensure the mounted volume is writable by uid 33 (`www-data`).
+The container automatically remaps `www-data` to match the UID/GID of whoever owns the mounted `/var/www` directory. No manual `chown` needed — PHP can write files and the host user retains full access for `git pull`, deploy scripts, and live code editing.
+
+| Scenario | Behavior |
+|----------|----------|
+| Mount from `/home/user_a` (uid=1000) | `www-data` remapped to uid=1000 |
+| Mount from `/home/user_b` (uid=1001) | `www-data` remapped to uid=1001 |
+| Mount from `/root` (uid=0) | No remapping (root owns everything) |
+
+To override the detected UID/GID explicitly:
+
+```bash
+docker run -e APACHE_UID=$(id -u) -e APACHE_GID=$(id -g) \
+  -v $(pwd)/websites:/var/www \
+  tackleza/php-apache-ext:8.3
+```
 
 ## PHP Version Lifecycle
 

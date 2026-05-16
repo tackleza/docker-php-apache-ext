@@ -1,66 +1,77 @@
 FROM php:8.3-apache
 
-# Update the package list and install necessary packages
-RUN apt-get update && apt-get install -y \
-    libfreetype6-dev \
-    libjpeg62-turbo-dev \
-    libpng-dev \
-    libwebp-dev \
-    libxpm-dev \
-    libzip-dev \
-    libicu-dev \
-    libkrb5-dev \
-    libldap2-dev \
-    libtidy-dev \
-    libxslt1-dev \
-    zlib1g-dev \
-    libmagickwand-dev \
-    libc-client-dev \
-    libssl-dev \
-    libgmp-dev \
-    unzip \
-    nano \
-    iputils-ping \
-    git \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-xpm \
-    && docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
-    && docker-php-ext-install -j$(nproc) \
-    gd \
-    bcmath \
-    bz2 \
-    calendar \
-    exif \
-    gettext \
-    imap \
-    intl \
-    mysqli \
-    opcache \
-    pcntl \
-    pdo \
-    pdo_mysql \
-    shmop \
-    soap \
-    sockets \
-    sysvmsg \
-    sysvsem \
-    sysvshm \
-    tidy \
-    xsl \
-    zip \
-    gmp \
-    && pecl install mongodb imagick \
-    && docker-php-ext-enable mongodb imagick
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        libfreetype6-dev \
+        libjpeg62-turbo-dev \
+        libpng-dev \
+        libwebp-dev \
+        libxpm-dev \
+        libzip-dev \
+        libicu-dev \
+        libkrb5-dev \
+        libldap2-dev \
+        libtidy-dev \
+        libxslt1-dev \
+        zlib1g-dev \
+        libmagickwand-dev \
+        libssl-dev \
+        libgmp-dev \
+        unzip \
+        nano \
+        iputils-ping \
+        git; \
+    \
+    # Add old Debian repo for libc-client-dev
+    echo "deb http://archive.debian.org/debian buster main" > /etc/apt/sources.list.d/buster.list; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends libc-client-dev; \
+    rm /etc/apt/sources.list.d/buster.list; \
+    apt-get update; \
+    \
+    rm -rf /var/lib/apt/lists/*
 
-# Enable Apache mod_rewrite
+RUN docker-php-ext-configure gd \
+        --with-freetype \
+        --with-jpeg \
+        --with-webp \
+        --with-xpm \
+ && docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
+ && docker-php-ext-install -j"$(nproc)" \
+        gd \
+        bcmath \
+        bz2 \
+        calendar \
+        exif \
+        gettext \
+        imap \
+        intl \
+        mysqli \
+        opcache \
+        pcntl \
+        pdo \
+        pdo_mysql \
+        shmop \
+        soap \
+        sockets \
+        sysvmsg \
+        sysvsem \
+        sysvshm \
+        tidy \
+        xsl \
+        zip \
+        gmp
+
+RUN pecl install mongodb imagick \
+ && docker-php-ext-enable mongodb imagick
+
 RUN a2enmod rewrite
 
-# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Clean up
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# chmod www to www-data
-RUN chown -R www-data:www-data /var/www
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 80
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
