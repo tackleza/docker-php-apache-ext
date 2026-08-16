@@ -121,7 +121,7 @@ extension=gmp
 
 ## File Permissions
 
-The container automatically remaps `www-data` to match the UID/GID of whoever owns the mounted `/var/www` directory. No manual `chown` needed — PHP can write files and the host user retains full access for `git pull`, deploy scripts, and live code editing.
+The container automatically remaps `www-data` to match the UID/GID of whoever owns the mounted `/var/www` directory. For a multi-site mount where `/var/www` itself is container-owned, it uses the single unambiguous non-default owner of the first-level site directories. No manual `chown` needed — PHP can write files and the host user retains full access for `git pull`, deploy scripts, and live code editing.
 
 | Scenario | Behavior |
 |----------|----------|
@@ -134,8 +134,19 @@ To override the detected UID/GID explicitly:
 ```bash
 docker run -e APACHE_UID=$(id -u) -e APACHE_GID=$(id -g) \
   -v $(pwd)/websites:/var/www \
+tackleza/php-apache-ext:8.3
+```
+
+For a multi-site mount with different owners, set the owner path or explicit IDs:
+
+```bash
+docker run \
+  -e APACHE_OWNER_PATH=/var/www/example.com \
+  -v $(pwd)/websites:/var/www \
   tackleza/php-apache-ext:8.3
 ```
+
+`APACHE_UID` and `APACHE_GID` must be provided together and take precedence over automatic detection. If multiple non-default site owners are detected without an override, the container exits with an actionable error instead of selecting the wrong user.
 
 ## PHP Version Lifecycle
 
