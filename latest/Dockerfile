@@ -37,6 +37,7 @@ RUN install-php-extensions \
     opcache \
     pcntl \
     pdo_mysql \
+    redis \
     shmop \
     soap \
     sockets \

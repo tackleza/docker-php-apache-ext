@@ -61,8 +61,11 @@ RUN docker-php-ext-configure gd \
         zip \
         gmp
 
-RUN pecl install mongodb imagick imap \
- && docker-php-ext-enable mongodb imagick imap
+RUN pecl install https://pecl.php.net/get/mongodb \
+                 https://pecl.php.net/get/imagick \
+                 https://pecl.php.net/get/imap \
+                 https://pecl.php.net/get/redis \
+ && docker-php-ext-enable mongodb imagick imap redis
 
 RUN a2enmod rewrite
 
