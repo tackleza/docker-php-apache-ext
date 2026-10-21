@@ -35,6 +35,14 @@ Pull the updated tag and recreate your containers to use the fixed runtime. Exis
 
 PHP 8.1 is end of life and its existing tag does not receive this fix. Upgrade to a supported tag.
 
+## Extension installation
+
+Supported images install external extensions with [PHP PIE](https://github.com/php/pie), pinned to version 1.5.2. Imagick 3.8.1, MongoDB 2.5.5, and Redis 6.3.0 come from version-pinned packages on [Packagist](https://packagist.org/extensions). PHP 8.4 and 8.5 also install the maintained IMAP package `sirlouen/imap` 1.1.2 through PIE; PHP 8.2 and 8.3 use their bundled IMAP extension. Other bundled extensions continue to use `install-php-extensions`.
+
+Extension versions are intentionally pinned for repeatable builds. A PIE release or package update requires a new image build and validation; existing containers must be recreated after pulling an updated tag.
+
+For PHP 8.4 and 8.5, the Debian 13 base needs archived Debian 12 `libc-client2007e` packages to build IMAP because Debian 13 no longer provides c-client. Keep this dependency in mind when updating the base image.
+
 ## Installed Extensions
 
 | Extension | Description |

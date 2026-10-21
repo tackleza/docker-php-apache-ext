@@ -18,16 +18,7 @@ RUN set -eux; \
         cron; \
     rm -rf /var/lib/apt/lists/*
 
-# 3. Install ALL PHP Extensions
-# This single command installs all the libraries (libicu, libpng, libc-client, etc.)
-# AND the PHP extensions themselves.
-RUN set -eux; \
-    curl -fsSL https://github.com/mongodb/mongo-php-driver/releases/download/2.5.5/mongodb-2.5.5.tgz -o /tmp/mongodb.tgz; \
-    mkdir /tmp/mongodb-src; \
-    tar -xzf /tmp/mongodb.tgz -C /tmp/mongodb-src --strip-components=1 mongodb-2.5.5; \
-    tar -xOf /tmp/mongodb.tgz package.xml > /tmp/mongodb-src/package.xml; \
-    git clone --quiet --recursive --depth 1 --branch 6.3.0 https://github.com/phpredis/phpredis.git /tmp/redis-src
-
+# 3. Install bundled PHP extensions
 RUN install-php-extensions \
     bcmath \
     bz2 \
@@ -36,15 +27,12 @@ RUN install-php-extensions \
     gd \
     gettext \
     gmp \
-    Imagick/imagick@3.8.1 \
     imap \
     intl \
-    /tmp/mongodb-src \
     mysqli \
     opcache \
     pcntl \
     pdo_mysql \
-    /tmp/redis-src \
     shmop \
     soap \
     sockets \
@@ -53,17 +41,27 @@ RUN install-php-extensions \
     sysvshm \
     tidy \
     xsl \
-    zip \
- && rm -rf /tmp/mongodb.tgz /tmp/mongodb-src /tmp/redis-src
+    zip
 
-# 4. Final Configuration
+# 4. Install pinned external extensions with PIE
+COPY --from=ghcr.io/php/pie:1.5.2-bin /pie /usr/local/bin/pie
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends $PHPIZE_DEPS libtool libmagickwand-dev; \
+    pie install --no-cache imagick/imagick:3.8.1; \
+    pie install --no-cache mongodb/mongodb-extension:2.5.5; \
+    pie install --no-cache phpredis/phpredis:6.3.0; \
+    apt-get purge -y $PHPIZE_DEPS libtool libmagickwand-dev; \
+    rm -rf /var/lib/apt/lists/* /root/.cache/composer
+
+# 5. Final Configuration
 # Enable Apache Rewrite Module
 RUN a2enmod rewrite
 
-# 5. Install Composer
+# 6. Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 6. Entrypoint — auto-remaps www-data UID to match mounted volume owner
+# 7. Entrypoint — auto-remaps www-data UID to match mounted volume owner
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
