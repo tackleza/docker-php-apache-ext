@@ -1,7 +1,12 @@
 #!/bin/bash
-bash -c "cd 8.1; sh build.sh; sh push.sh"
-bash -c "cd 8.2; sh build.sh; sh push.sh"
-bash -c "cd 8.3; sh build.sh; sh push.sh"
-bash -c "cd 8.4; sh build.sh; sh push.sh"
-bash -c "cd 8.5; sh build.sh; sh push.sh"
-bash -c "cd latest; sh build.sh; sh push.sh"
+set -euo pipefail
+
+versions=(8.2 8.3 8.4 8.5 latest)
+
+for version in "${versions[@]}"; do
+    (cd "$version" && bash -e build.sh)
+done
+
+for version in "${versions[@]}"; do
+    (cd "$version" && bash -e push.sh)
+done

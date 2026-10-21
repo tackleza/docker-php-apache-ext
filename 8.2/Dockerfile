@@ -1,77 +1,69 @@
 FROM php:8.2-apache
 
+# 1. Install the "Magic" Installer Script
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+
+# 2. Install System Utilities (Linux Tools)
+# These are the tools you asked for: curl, ping, nano, git, unzip
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        libfreetype6-dev \
-        libjpeg62-turbo-dev \
-        libpng-dev \
-        libwebp-dev \
-        libxpm-dev \
-        libzip-dev \
-        libicu-dev \
-        libkrb5-dev \
-        libldap2-dev \
-        libtidy-dev \
-        libxslt1-dev \
-        zlib1g-dev \
-        libmagickwand-dev \
-        libssl-dev \
-        libgmp-dev \
-        unzip \
-        nano \
+        curl \
+        git \
         iputils-ping \
-        git; \
-    \
-    # Add old Debian repo for libc-client-dev
-    echo "deb http://archive.debian.org/debian buster main" > /etc/apt/sources.list.d/buster.list; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends libc-client-dev; \
-    rm /etc/apt/sources.list.d/buster.list; \
-    apt-get update; \
-    \
+        nano \
+        unzip \
+        zip \
+        # 'cron' is often useful if you use scheduler, but optional
+        cron; \
     rm -rf /var/lib/apt/lists/*
 
-RUN docker-php-ext-configure gd \
-        --with-freetype \
-        --with-jpeg \
-        --with-webp \
-        --with-xpm \
- && docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
- && docker-php-ext-install -j"$(nproc)" \
-        gd \
-        bcmath \
-        bz2 \
-        calendar \
-        exif \
-        gettext \
-        imap \
-        intl \
-        mysqli \
-        opcache \
-        pcntl \
-        pdo \
-        pdo_mysql \
-        shmop \
-        soap \
-        sockets \
-        sysvmsg \
-        sysvsem \
-        sysvshm \
-        tidy \
-        xsl \
-        zip \
-        gmp
+# 3. Install ALL PHP Extensions
+# This single command installs all the libraries (libicu, libpng, libc-client, etc.)
+# AND the PHP extensions themselves.
+RUN set -eux; \
+    curl -fsSL https://github.com/mongodb/mongo-php-driver/releases/download/2.5.5/mongodb-2.5.5.tgz -o /tmp/mongodb.tgz; \
+    mkdir /tmp/mongodb-src; \
+    tar -xzf /tmp/mongodb.tgz -C /tmp/mongodb-src --strip-components=1 mongodb-2.5.5; \
+    tar -xOf /tmp/mongodb.tgz package.xml > /tmp/mongodb-src/package.xml; \
+    git clone --quiet --recursive --depth 1 --branch 6.3.0 https://github.com/phpredis/phpredis.git /tmp/redis-src
 
-RUN pecl install https://pecl.php.net/get/mongodb \
-                 https://pecl.php.net/get/imagick \
-                 https://pecl.php.net/get/redis \
- && docker-php-ext-enable mongodb imagick redis
+RUN install-php-extensions \
+    bcmath \
+    bz2 \
+    calendar \
+    exif \
+    gd \
+    gettext \
+    gmp \
+    Imagick/imagick@3.8.1 \
+    imap \
+    intl \
+    /tmp/mongodb-src \
+    mysqli \
+    opcache \
+    pcntl \
+    pdo_mysql \
+    /tmp/redis-src \
+    shmop \
+    soap \
+    sockets \
+    sysvmsg \
+    sysvsem \
+    sysvshm \
+    tidy \
+    xsl \
+    zip \
+ && rm -rf /tmp/mongodb.tgz /tmp/mongodb-src /tmp/redis-src
 
+# 4. Final Configuration
+# Enable Apache Rewrite Module
 RUN a2enmod rewrite
 
+# 5. Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# 6. Entrypoint — auto-remaps www-data UID to match mounted volume owner
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 

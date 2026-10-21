@@ -21,6 +21,13 @@ RUN set -eux; \
 # 3. Install ALL PHP Extensions
 # This single command installs all the libraries (libicu, libpng, libc-client, etc.)
 # AND the PHP extensions themselves.
+RUN set -eux; \
+    curl -fsSL https://github.com/mongodb/mongo-php-driver/releases/download/2.5.5/mongodb-2.5.5.tgz -o /tmp/mongodb.tgz; \
+    mkdir /tmp/mongodb-src; \
+    tar -xzf /tmp/mongodb.tgz -C /tmp/mongodb-src --strip-components=1 mongodb-2.5.5; \
+    tar -xOf /tmp/mongodb.tgz package.xml > /tmp/mongodb-src/package.xml; \
+    git clone --quiet --recursive --depth 1 --branch 6.3.0 https://github.com/phpredis/phpredis.git /tmp/redis-src
+
 RUN install-php-extensions \
     bcmath \
     bz2 \
@@ -29,15 +36,15 @@ RUN install-php-extensions \
     gd \
     gettext \
     gmp \
-    imagick \
-    imap \
+    Imagick/imagick@3.8.1 \
+    php/pecl-mail-imap@1.0.3 \
     intl \
-    mongodb \
+    /tmp/mongodb-src \
     mysqli \
     opcache \
     pcntl \
     pdo_mysql \
-    redis \
+    /tmp/redis-src \
     shmop \
     soap \
     sockets \
@@ -46,7 +53,8 @@ RUN install-php-extensions \
     sysvshm \
     tidy \
     xsl \
-    zip
+    zip \
+ && rm -rf /tmp/mongodb.tgz /tmp/mongodb-src /tmp/redis-src
 
 # 4. Final Configuration
 # Enable Apache Rewrite Module

@@ -11,14 +11,29 @@ A production-ready PHP + Apache image with a curated set of common PHP extension
 
 | Tag | PHP Version | Status |
 |-----|------------|--------|
-| `8.1` | PHP 8.1 | ⚠️ End-of-Life — security fixes only |
+| `8.1` | PHP 8.1 | ⚠️ End-of-life — no new image releases |
 | `8.2` | PHP 8.2 | ✅ Supported |
 | `8.3` | PHP 8.3 | ✅ Supported |
 | `8.4` | PHP 8.4 | ✅ Supported |
 | `8.5` | PHP 8.5 | ✅ Supported |
 | `latest` | PHP 8.5 | ✅ Latest |
 
-> PHP 8.6 / 9.0 are not yet available.
+> PHP 8.6 is a release candidate and is not intended for production. The existing `8.1` tag is retained for compatibility but is no longer rebuilt.
+
+## October 2026 PHP security update
+
+The supported tags (`8.2`, `8.3`, `8.4`, `8.5`, and `latest`) are rebuilt from official PHP images containing the fixes for [CVE-2026-109618 and CVE-2026-109619](https://www.php.net/archive/2026.php). The release build checks the PHP version, installed extensions, and Apache configuration before publication.
+
+| Tag | Fixed PHP version |
+|-----|-------------------|
+| `8.2` | 8.2.35 |
+| `8.3` | 8.3.36 |
+| `8.4` | 8.4.27 |
+| `8.5`, `latest` | 8.5.12 |
+
+Pull the updated tag and recreate your containers to use the fixed runtime. Existing running containers do not update automatically. You can check a pulled image with `docker run --rm --entrypoint php tackleza/php-apache-ext:8.5 -r 'echo PHP_VERSION, PHP_EOL;'`.
+
+PHP 8.1 is end of life and its existing tag does not receive this fix. Upgrade to a supported tag.
 
 ## Installed Extensions
 
@@ -34,7 +49,7 @@ A production-ready PHP + Apache image with a curated set of common PHP extension
 | `imagick` | ImageMagick integration |
 | `imap` | IMAP email protocol support |
 | `intl` | Internationalization (ICU) |
-| `mongod` | MongoDB driver |
+| `mongodb` | MongoDB driver |
 | `mysqli` | MySQL Improved extension |
 | `opcache` | PHP bytecode cache |
 | `pcntl` | Process control |
