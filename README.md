@@ -181,3 +181,9 @@ docker run \
 | PHP 8.3 | ✅ Active | Dec 2027 |
 | PHP 8.4 | ✅ Active | Dec 2028 |
 | PHP 8.5 | ✅ Active | Dec 2029 |
+
+## November 2026 Apache security update
+
+Supported tags explicitly upgrade Apache packages and reject Apache older than 2.4.71, including the fix for CVE-2026-119618. This is independent of PHP base image rebuild timing. PHP versions, extensions and entrypoint behavior remain unchanged. Build individual variants for local validation: `build-all.sh` also publishes images.
+
+References: https://httpd.apache.org/security/vulnerabilities_24.html and https://security-tracker.debian.org/tracker/CVE-2026-119618.

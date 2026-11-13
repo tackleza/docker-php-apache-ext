@@ -1,5 +1,14 @@
 FROM php:8.4-apache
 
+# Upgrade Apache independently of the PHP base rebuild cadence.
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends --only-upgrade apache2 apache2-bin apache2-data apache2-utils; \
+    for package in apache2 apache2-bin apache2-data apache2-utils; do \
+        dpkg --compare-versions "$(dpkg-query -W -f='${Version}' "$package")" ge '2.4.71~'; \
+    done; \
+    rm -rf /var/lib/apt/lists/*
+
 # 1. Install the "Magic" Installer Script
 COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 
